@@ -1,0 +1,39 @@
+# src/firewall/config.py
+
+# IMPORTANT SECURITY NOTE:
+# This file contains sensitive information (API Key).
+# In a real-world deployment, NEVER store secrets directly in code like this.
+# Use secure methods like environment variables, secret management systems (e.g.,
+# AWS Secrets Manager, Azure Key Vault, HashiCorp Vault), or secure configuration files
+# with restricted access.
+# For this development and testing phase, storing it here is acceptable *only*
+# within a controlled, isolated lab environment and with appropriate file permissions.
+
+# Check Point Management Server Details
+# Replace with your Check Point Management Server URL and Port
+MANAGER_URL = "https://your-checkpoint-manager-ip-or-hostname:443"
+
+# Check Point API Key
+# Replace with your actual API Key
+API_KEY = "YOUR_CHECKPOINT_API_KEY"
+
+# Target Group(s) for Blocking
+# List the name(s) of the Check Point network group objects
+# where malicious IP host objects should be added.
+# These groups should already exist on your Check Point Management Server.
+TARGET_GROUPS = ["Blocked_Threat_Intel_IOCs", "Auto_Blocked_IPs"] # Example Group Names
+
+# Prefix for Automatically Created Host Objects
+# Host objects created by the BlockIP tool will use this prefix
+# followed by the IP address (e.g., "Bad_1.2.3.4").
+HOST_OBJECT_PREFIX = "AutoBlocked_"
+
+# API Version (Check Point Management API version)
+# Ensure this matches the version your Manager is running
+API_VERSION = "v1.7" # Example version for R81.20+ (adjust if needed)
+
+# Timeout for API calls (in seconds)
+API_TIMEOUT = 15.0
+
+# Set verify=False for self-signed certs in lab, set to True or path to CA bundle in production
+API_VERIFY_SSL = False
