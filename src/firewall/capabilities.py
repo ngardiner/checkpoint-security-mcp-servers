@@ -6,7 +6,7 @@ import json
 # Import configuration variables
 from . import config
 from mcp.types import Tool, Resource, Prompt, ServerCapabilities
-from typing import Dict, Any, List
+from typing import Dict, Any, List, ClassVar
 
 # Helper function to make authenticated API calls
 async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid: str = None) -> httpx.Response:
@@ -55,9 +55,9 @@ class BlockIPTool(Tool):
     Adds a given IP address as a Host object and adds it to predefined groups
     on the Check Point Firewall Management Server.
     """
-    name = "block_ip"
-    description = "Adds an IP address as a host object and adds it to configured blocking groups on the Check Point Management Server. Requires 'ip_address'."
-    input_schema = {
+    name: str = "block_ip"
+    description: str = "Adds an IP address as a host object and adds it to configured blocking groups on the Check Point Management Server. Requires 'ip_address'."
+    input_schema: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "ip_address": {
@@ -72,7 +72,7 @@ class BlockIPTool(Tool):
         },
         "required": ["ip_address"] # Manager URL and API Key come from config now
     }
-    output_schema = {
+    output_schema: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "success": {"type": "boolean"},
@@ -240,10 +240,10 @@ class BlockIPTool(Tool):
 # Define the Check Point API Connectivity Test Tool
 class CheckPointLoginTestTool(Tool):
     """Tests connectivity to the Check Point Management API via login with API key."""
-    name = "checkpoint_login_test"
-    description = "Attempts to log in to a Check Point Management Server using an API key to verify connectivity and authentication."
+    name: str = "checkpoint_login_test"
+    description: str = "Attempts to log in to a Check Point Management Server using an API key to verify connectivity and authentication."
     # Keep inputs here as its specific job is to test a given manager/key
-    input_schema = {
+    input_schema: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "manager_url": {
@@ -257,7 +257,7 @@ class CheckPointLoginTestTool(Tool):
         },
         "required": ["manager_url", "api_key"]
     }
-    output_schema = {
+    output_schema: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "success": {
@@ -382,10 +382,10 @@ class CheckPointLoginTestTool(Tool):
 # Example Placeholder Resource for Firewall (needs implementation)
 class FirewallLogsResource(Resource):
     """Provides recent firewall logs."""
-    name = "firewall_logs"
-    description = "Retrieves recent logs from the Check Point Firewall."
+    name: str = "firewall_logs"
+    description: str = "Retrieves recent logs from the Check Point Firewall."
     # Manager URL and API Key come from config now
-    input_schema = {
+    input_schema: ClassVar[Dict[str, Any]] = {
          "type": "object",
          "properties": {
              "time_range": {
@@ -400,7 +400,7 @@ class FirewallLogsResource(Resource):
          },
          "required": [] # Manager URL and API Key come from config now
      }
-    content_type = "application/json" # Or text/plain, etc. based on format
+    content_type: str = "application/json" # Or text/plain, etc. based on format
 
     async def read(self, parameters: Dict[str, Any]) -> str:
         """Implementation to retrieve logs from Check Point Firewall."""
