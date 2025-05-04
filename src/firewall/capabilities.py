@@ -433,13 +433,31 @@ class FirewallLogsResource(Resource):
 # Define the full capabilities for the Firewall server
 class FirewallCapabilities(ServerCapabilities):
     tools = [
-        CheckPointLoginTestTool(),
+        CheckPointLoginTestTool(
+            # Explicitly pass the class attributes as arguments
+            name=CheckPointLoginTestTool.name,
+            description=CheckPointLoginTestTool.description,
+            input_schema=CheckPointLoginTestTool.input_schema,
+            output_schema=CheckPointLoginTestTool.output_schema
+        ),
         # Add other Firewall Tools here (e.g., allow_ip, get_rule_details)
-        BlockIPTool()
+        BlockIPTool(
+            # Explicitly pass the class attributes for BlockIPTool as well
+            name=BlockIPTool.name,
+            description=BlockIPTool.description,
+            input_schema=BlockIPTool.input_schema,
+            output_schema=BlockIPTool.output_schema
+        )
     ]
     resources = [
         # Add Firewall Resources here (e.g., FirewallLogsResource)
-        FirewallLogsResource()
+        FirewallLogsResource(
+             # Explicitly pass the class attributes for FirewallLogsResource
+             name=FirewallLogsResource.name,
+             description=FirewallLogsResource.description,
+             input_schema=FirewallLogsResource.input_schema,
+             content_type=FirewallLogsResource.content_type
+        )
     ]
     prompts = [
         # Add Firewall specific Prompts here
