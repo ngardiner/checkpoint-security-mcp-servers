@@ -1,7 +1,7 @@
 # src/firewall/server.py
 
 import asyncio
-from modelcontextprotocol.server import Server
+from mcp.server.lowlevel import Server
 # Import the corrected capabilities class name from capabilities.py
 from .capabilities import FirewallCapabilities
 

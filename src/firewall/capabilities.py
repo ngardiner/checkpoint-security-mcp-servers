@@ -5,7 +5,7 @@ import httpx
 import json
 # Import configuration variables
 from . import config
-from modelcontextprotocol.server import Tool, Resource, Prompt, ServerCapabilities
+from mcp.types import Tool, Resource, Prompt, ServerCapabilities
 from typing import Dict, Any, List
 
 # Helper function to make authenticated API calls
