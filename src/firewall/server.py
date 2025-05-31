@@ -6,6 +6,7 @@ import json
 import traceback
 
 server = FastMCP(server_name="CheckPointFirewallMCP")
+session_id = None
 
 async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid: str = None) -> httpx.Response:
     """
@@ -20,7 +21,13 @@ async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid
         The httpx.Response object.
     """
     headers = {"Content-Type": "application/json"}
-    if sid: headers["X-chkp-sid"] = sid
+
+    # If login has not been performed, we need to log in first
+    global session_id
+    if not session_id:
+        checkpoint_login()
+
+    headers["X-chkp-sid"] = session_id
     api_url = f"{config.MANAGER_URL.rstrip('/')}/web_api/{config.API_VERSION}/{endpoint}"
     print(f"Calling Check Point API: POST {api_url}")
     if payload: print(f"Payload: {json.dumps(payload)}")
@@ -39,6 +46,7 @@ async def checkpoint_login() -> Dict[str, Any]:
     api_key = getattr(config, 'API_KEY', None)
     username = getattr(config, 'USERNAME', None)
     password = getattr(config, 'PASSWORD', None)
+    global session_id
     login_endpoint = "/web_api/login"
     full_login_url = f"{manager_url.rstrip('/')}{login_endpoint}"
 
