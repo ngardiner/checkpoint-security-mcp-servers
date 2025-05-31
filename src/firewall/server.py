@@ -25,7 +25,7 @@ async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid
     # If login has not been performed, we need to log in first
     global session_id
     if session_id is None:
-        checkpoint_login()
+        await checkpoint_login()
 
     headers["X-chkp-sid"] = session_id
     api_url = f"{config.MANAGER_URL.rstrip('/')}/web_api/{config.API_VERSION}/{endpoint}"
@@ -160,6 +160,104 @@ async def block_ip(ip_address: str, reason: Optional[str] = "Blocked by AI agent
     except httpx.RequestError as exc: success_message += f" Warning: Failed during publish or install policy. API Error: {exc.response.status_code if exc.response else 'N/A'} - {exc.response.text if exc.response else str(exc)}."
     except Exception as e: success_message += f" Warning: An unexpected error occurred during publish or install policy: {e}."
     return {"success": True, "message": success_message, "host_object_name": host_object_name, "groups_updated": updated_groups}
+
+@server.tool()
+async def get_object_details(
+    object_name: Optional[str] = None,
+    object_uid: Optional[str] = None,
+    object_type: Optional[str] = None # e.g., "host", "network", "group", "gateway-cp"
+) -> Dict[str, Any]:
+    """
+    Retrieves detailed information about a specific Check Point network object
+    by its name or UID. Provide at least object_name or object_uid.
+    Optionally, specify object_type to disambiguate if names are not unique
+    (e.g., "host", "network", "group").
+    """
+    if not object_name and not object_uid:
+        return {
+            "success": False,
+            "message": "Either object_name or object_uid must be provided.",
+            "object_details": None
+        }
+
+    payload: Dict[str, Any] = {}
+    if object_uid:
+        payload["uid"] = object_uid
+    elif object_name: # Prioritize UID if both are somehow given, though schema implies one or other
+        payload["name"] = object_name
+
+    # The 'type' parameter for show-object might be needed if names are not unique across types.
+    # Its exact name in the API payload might vary (e.g., 'type', 'object-type').
+    # For some specific object types, you might need to call a different API endpoint
+    # (e.g., show-host, show-network, show-group).
+    # This prototype assumes a generic "show-object" that can optionally take a type.
+    # You may need to adjust the endpoint or add logic based on object_type.
+    api_endpoint = "show-object"
+    if object_type:
+        # This is a guess; verify how 'type' is specified for the 'show-object' command in your API version
+        payload["type"] = object_type # Or it might be part of the endpoint for some APIs
+
+    print(f"Attempting to get details for object: {object_name or object_uid}" + (f" of type {object_type}" if object_type else ""))
+
+    try:
+        # If login has not been performed, we need to log in first
+        global session_id
+        if session_id is None:
+            await checkpoint_login()
+
+        response = await call_checkpoint_api(api_endpoint, payload=payload, sid=session_id)
+
+        if response.status_code == 200:
+            object_data = response.json()
+            return {
+                "success": True,
+                "message": f"Successfully retrieved details for object '{object_data.get('name', object_name or object_uid)}'.",
+                "object_details": object_data
+            }
+        elif response.status_code == 404:
+            error_data = response.json()
+            error_message = error_data.get("message", "Object not found.")
+            return {
+                "success": False,
+                "message": f"Failed to get object details: {error_message} (Name: {object_name}, UID: {object_uid}, Type: {object_type})",
+                "object_details": None
+            }
+        else:
+            response.raise_for_status() # Raise an exception for other bad status codes
+            # This line might not be reached if raise_for_status() throws an error that's caught below.
+
+    except httpx.TimeoutException:
+        return {
+            "success": False,
+            "message": f"API request timed out while getting details for object: {object_name or object_uid}.",
+            "object_details": None
+        }
+    except httpx.RequestError as exc:
+        error_message = str(exc)
+        if exc.response is not None:
+            try:
+                error_details = exc.response.json()
+                error_message = error_details.get("message", exc.response.text)
+            except json.JSONDecodeError:
+                error_message = exc.response.text
+        return {
+            "success": False,
+            "message": f"Failed to get object details (Name: {object_name}, UID: {object_uid}). API Error: {error_message}",
+            "object_details": None
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"An unexpected error occurred while getting object details: {e}",
+            "object_details": None
+        }
+
+    # Fallback if something unexpected happens, though raise_for_status might prevent this.
+    return {
+        "success": False,
+        "message": "Failed to retrieve object details due to an unexpected error after API call.",
+        "object_details": None
+    }
 
 # --- FirewallLogsResource ---
 @server.resource(uri="firewall-resource:logs")
