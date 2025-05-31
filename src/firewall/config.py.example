@@ -17,6 +17,11 @@ MANAGER_URL = "https://your-checkpoint-manager-ip-or-hostname:443"
 # Replace with your actual API Key
 API_KEY = "YOUR_CHECKPOINT_API_KEY"
 
+# Alternatively, you can use username/password login.
+# Please comment out API_KEY for username/password login
+# USERNAME = "API_USER"
+# PASSWORRD = "PASSWORD"
+
 # Target Group(s) for Blocking
 # List the name(s) of the Check Point network group objects
 # where malicious IP host objects should be added.
