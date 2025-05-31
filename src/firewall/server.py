@@ -29,8 +29,12 @@ async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid
     return response
 
 @server.tool()
-async def checkpoint_login_test() -> Dict[str, Any]:
-    """Runs the login tool."""
+async def checkpoint_login() -> Dict[str, Any]:
+    """
+    Logs in to the Check Point Management API using either:
+     - An API Key, or
+     - Username and Password
+    """
     manager_url = getattr(config, 'MANAGER_URL', None)
     api_key = getattr(config, 'API_KEY', None)
     username = getattr(config, 'USERNAME', None)
@@ -81,7 +85,7 @@ async def checkpoint_login_test() -> Dict[str, Any]:
         except httpx.RequestError as exc:
             return {"success": False, "message": f"An error occurred while requesting {exc.request.url!r}: {exc}", "session_id": None}
         except Exception as e:
-             return {"success": False, "message": f"An unexpected error occurred during login test: {e}", "session_id": None}
+             return {"success": False, "message": f"An unexpected error occurred during login: {e}", "session_id": None}
 
 @server.tool()
 async def block_ip(ip_address: str, reason: Optional[str] = "Blocked by AI agent") -> Dict[str, Any]:
@@ -154,7 +158,7 @@ async def firewall_logs() -> str:
     # This is the part that needs to be figured out from FastMCP docs/examples
     # For now, using defaults to allow server to start.
     time_range = "last 1 hour"
-    filter_str = None # Using filter_str to avoid conflict with builtin filter
+    filter_str = None
 
     manager_url = config.MANAGER_URL
     api_key = config.API_KEY
@@ -163,7 +167,12 @@ async def firewall_logs() -> str:
         return json.dumps({"error": "Manager URL and API Key are not configured in config.py."})
 
     print(f"Attempting to retrieve firewall logs from {manager_url} for time range: {time_range}, filter: {filter_str if filter_str else 'None'}")
-    
+
+    # TODO: Implement actual API call to Check Point Logging/Management API
+    # Use the api_key/session from config/state to authenticate.
+    # Retrieve logs based on parameters (time_range, filter).
+
+    # Placeholder implementation returning dummy data
     dummy_logs = [
         {"time": "2025-05-02T10:00:00Z", "src": "1.2.3.4", "dst": "192.168.1.10", "action": "Accept", "protocol": "TCP", "dst_port": 80},
         {"time": "2025-05-02T10:05:00Z", "src": "5.6.7.8", "dst": "192.168.1.20", "action": "Drop", "protocol": "UDP", "dst_port": 53}
