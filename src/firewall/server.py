@@ -89,6 +89,14 @@ async def checkpoint_login() -> Dict[str, Any]:
 
 @server.tool()
 async def block_ip(ip_address: str, reason: Optional[str] = "Blocked by AI agent") -> Dict[str, Any]:
+    """
+    Adds a given IP address as a Host object and adds it to predefined groups
+    on the Check Point Firewall Management Server.
+
+    Args:
+    ip_address (str): The IP address to block.
+    reason (str): A description of why the IP is being blocked. Defaults to "Blocked by AI agent".
+    """
     host_object_name = f"{config.HOST_OBJECT_PREFIX}{ip_address.replace('.', '_')}"
     if not ip_address: return {"success": False, "message": "IP address is required."}
     if not config.TARGET_GROUPS: return {"success": False, "message": "TARGET_GROUPS is not configured in config.py."}
