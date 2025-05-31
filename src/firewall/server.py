@@ -259,6 +259,112 @@ async def get_object_details(
         "object_details": None
     }
 
+@server.tool()
+async def list_objects(
+    object_type: str, # e.g., "host", "network", "group", "gateway-cp", "access-rule"
+    filter_text: Optional[str] = None,
+    limit: Optional[int] = 50,
+    offset: Optional[int] = 0
+) -> Dict[str, Any]:
+    """
+    Lists Check Point network objects of a specified type,
+    with optional text filter, limit, and offset for pagination.
+    'object_type' is required (e.g., "host", "network", "group").
+    """
+    if not object_type:
+        return {
+            "success": False,
+            "message": "object_type must be provided.",
+            "objects": [],
+            "total_found": 0
+        }
+
+    # The Check Point API command for listing objects might be "show-objects"
+    # or it could be more specific like "show-hosts", "show-networks" etc.
+    # This prototype assumes a generic "show-objects" endpoint that takes a "type" parameter.
+    # Adjust the endpoint and payload keys if your API version differs.
+    api_endpoint = "show-objects"
+    payload: Dict[str, Any] = {
+        "type": object_type,
+        "limit": limit,
+        "offset": offset,
+        # The API might expect 'details-level' to be 'standard' or 'full'
+        "details-level": "standard" # Or "full" if you need more comprehensive details for each object in the list
+    }
+
+    if filter_text:
+        payload["filter"] = filter_text # Or the parameter name might be "filter-text", "text-filter" etc.
+
+    print(f"Attempting to list objects of type '{object_type}' with filter: '{filter_text}', limit: {limit}, offset: {offset}")
+
+    try:
+        # If login has not been performed, we need to log in first
+        global session_id
+        if session_id is None:
+            await checkpoint_login()
+
+        response = await call_checkpoint_api(api_endpoint, payload=payload, sid=session_id)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            # The response structure might vary. Often there's an "objects" array and a "total" count.
+            objects_list = response_data.get("objects", [])
+            total_found = response_data.get("total", len(objects_list)) # Fallback to len(objects_list) if "total" isn't present
+
+            return {
+                "success": True,
+                "message": f"Successfully retrieved {len(objects_list)} of {total_found} objects of type '{object_type}'.",
+                "objects": objects_list,
+                "total_found": total_found
+            }
+        else:
+            # Try to parse error, then raise_for_status if it's not a simple error message
+            error_message = f"Failed to list objects of type '{object_type}'."
+            try:
+                error_data = response.json()
+                error_message += f" API Error: {error_data.get('message', response.text)}"
+            except json.JSONDecodeError:
+                error_message += f" API Error: {response.status_code} - {response.text}"
+            
+            # If you want to raise for non-200 to be caught by generic handlers:
+            # response.raise_for_status()
+
+            return {
+                "success": False,
+                "message": error_message,
+                "objects": [],
+                "total_found": 0
+            }
+
+    except httpx.TimeoutException:
+        return {
+            "success": False,
+            "message": f"API request timed out while listing objects of type '{object_type}'.",
+            "objects": [],
+            "total_found": 0
+        }
+    except httpx.RequestError as exc:
+        error_message_detail = str(exc)
+        if exc.response is not None:
+            try:
+                error_details = exc.response.json()
+                error_message_detail = error_details.get("message", exc.response.text)
+            except json.JSONDecodeError:
+                error_message_detail = exc.response.text
+        return {
+            "success": False,
+            "message": f"Failed to list objects of type '{object_type}'. API Error: {error_message_detail}",
+            "objects": [],
+            "total_found": 0
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"An unexpected error occurred while listing objects: {e}",
+            "objects": [],
+            "total_found": 0
+        }
+
 # --- FirewallLogsResource ---
 @server.resource(uri="firewall-resource:logs")
 async def firewall_logs() -> str:
