@@ -24,7 +24,7 @@ async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid
 
     # If login has not been performed, we need to log in first
     global session_id
-    if not session_id:
+    if session_id is None:
         checkpoint_login()
 
     headers["X-chkp-sid"] = session_id
