@@ -418,7 +418,6 @@ def main():
     args = parser.parse_args()
 
     print(f"Starting Check Point Firewall MCP server (FastMCP using {args.transport}, port {args.port if args.transport != 'stdio' else 'N/A'})...")
-    server = FastMCP(server_name="CheckPointFirewallMCP", host="0.0.0.0", port=args.port, log_level="INFO")
     try:
         server.run(transport=args.transport)
 
