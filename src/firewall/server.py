@@ -409,9 +409,15 @@ def main():
         default='stdio',
         help="Transport mechanism to use (default: stdio)"
     )
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=8000,
+        help='Port to listen on for SSE or Streamable HTTP transport (default: 8000)'
+    )
     args = parser.parse_args()
 
-    print(f"Starting Check Point Firewall MCP server (FastMCP using {args.transport})...")
+    print(f"Starting Check Point Firewall MCP server (FastMCP using {args.transport}, port {args.port if args.transport != 'stdio' else 'N/A'})...")
     try:
         if args.transport == "stdio":
             # Assuming server.run() defaults to stdio or handles transport='stdio'
@@ -420,7 +426,7 @@ def main():
             server.run(
                 transport=args.transport,
                 host="0.0.0.0",
-                port=8000,
+                port=args.port,
                 log_level="info"
             )
         else:

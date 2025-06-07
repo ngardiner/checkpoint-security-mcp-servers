@@ -86,6 +86,12 @@ To set up and run these MCP servers, you'll need Python 3.8+ and a Check Point M
         ```
         The server will listen on `0.0.0.0:8000` by default when using `streamable-http`.
 
+    When using `sse` or `streamable-http` transports, you can also specify a custom port using the optional `--port` argument. If not provided, it defaults to `8000`.
+    Example:
+    ```bash
+    python src/firewall/server.py --transport streamable-http --port 9999
+    ```
+
 6.  **Connect an MCP Client:**
     * Use an MCP-compatible AI application (like Anthropic's Claude Desktop, or build/configure your own client) to connect to the running server.
     * Configure the client to recognize your local server running via standard I/O. Refer to your chosen MCP client's documentation for how to add a local server.
