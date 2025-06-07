@@ -6,7 +6,7 @@ import httpx
 import json
 import traceback
 
-server = FastMCP(server_name="CheckPointFirewallMCP", host="0.0.0.0")
+server = FastMCP(server_name="CheckPointFirewallMCP")
 session_id = None
 
 async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid: str = None) -> httpx.Response:
@@ -418,20 +418,9 @@ def main():
     args = parser.parse_args()
 
     print(f"Starting Check Point Firewall MCP server (FastMCP using {args.transport}, port {args.port if args.transport != 'stdio' else 'N/A'})...")
+    server = FastMCP(server_name="CheckPointFirewallMCP", host="0.0.0.0", port=args.port, log_level="INFO")
     try:
-        if args.transport == "stdio":
-            # Assuming server.run() defaults to stdio or handles transport='stdio'
-            server.run(transport=args.transport)
-        elif args.transport in ["sse", "streamable-http"]:
-            server.run(
-                transport=args.transport,
-                port=args.port,
-                log_level="info"
-            )
-        else:
-            # Should not happen due to argparse choices
-            print(f"Error: Unknown transport type {args.transport}")
-            return
+        server.run(transport=args.transport)
 
     except Exception as e:
         error_message = f"PYTHON SERVER CRITICAL ERROR in main server.run() with transport {args.transport}: {e}\n{traceback.format_exc()}"
