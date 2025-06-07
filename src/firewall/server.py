@@ -1,3 +1,4 @@
+import argparse
 from mcp.server.fastmcp import FastMCP
 from typing import Dict, Any, List, Optional
 from . import config
@@ -401,11 +402,40 @@ async def firewall_logs() -> str:
     return json.dumps(dummy_logs)
 
 def main():
-    print(f"Starting Check Point Firewall MCP server (FastMCP using stdio)...")
+    parser = argparse.ArgumentParser(description="Check Point Firewall MCP Server")
+    parser.add_argument(
+        "--transport",
+        choices=['stdio', 'sse', 'streamable-http'],
+        default='stdio',
+        help="Transport mechanism to use (default: stdio)"
+    )
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=8000,
+        help='Port to listen on for SSE or Streamable HTTP transport (default: 8000)'
+    )
+    args = parser.parse_args()
+
+    print(f"Starting Check Point Firewall MCP server (FastMCP using {args.transport}, port {args.port if args.transport != 'stdio' else 'N/A'})...")
     try:
-        server.run()
+        if args.transport == "stdio":
+            # Assuming server.run() defaults to stdio or handles transport='stdio'
+            server.run(transport=args.transport)
+        elif args.transport in ["sse", "streamable-http"]:
+            server.run(
+                transport=args.transport,
+                host="0.0.0.0",
+                port=args.port,
+                log_level="info"
+            )
+        else:
+            # Should not happen due to argparse choices
+            print(f"Error: Unknown transport type {args.transport}")
+            return
+
     except Exception as e:
-        error_message = f"PYTHON SERVER CRITICAL ERROR in main server.run(): {e}\n{traceback.format_exc()}"
+        error_message = f"PYTHON SERVER CRITICAL ERROR in main server.run() with transport {args.transport}: {e}\n{traceback.format_exc()}"
         print(error_message)
         with open("fastmcp_server_critical_error.log", "w") as f_err:
             f_err.write(error_message)
