@@ -6,7 +6,7 @@ import httpx
 import json
 import traceback
 
-server = FastMCP(server_name="CheckPointFirewallMCP")
+server = FastMCP(server_name="CheckPointFirewallMCP", host="0.0.0.0")
 session_id = None
 
 async def call_checkpoint_api(endpoint: str, payload: Dict[str, Any] = None, sid: str = None) -> httpx.Response:
@@ -425,7 +425,6 @@ def main():
         elif args.transport in ["sse", "streamable-http"]:
             server.run(
                 transport=args.transport,
-                host="0.0.0.0",
                 port=args.port,
                 log_level="info"
             )
