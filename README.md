@@ -69,6 +69,23 @@ To set up and run these MCP servers, you'll need Python 3.8+ and a Check Point M
     ```
     The server will start and wait for an MCP client connection over standard I/O.
 
+    By default, the server uses standard I/O (`stdio`) for communication. You can also specify other transport mechanisms using the `--transport` argument:
+
+    *   **`stdio` (default):** Uses standard input/output.
+        ```bash
+        python src/firewall/server.py
+        ```
+    *   **`sse` (Server-Sent Events):** Runs an HTTP server that clients can connect to for Server-Sent Events.
+        ```bash
+        python src/firewall/server.py --transport sse
+        ```
+        The server will listen on `0.0.0.0:8000` by default when using `sse`.
+    *   **`streamable-http`:** Runs an HTTP server that clients can connect to using a streamable HTTP mechanism.
+        ```bash
+        python src/firewall/server.py --transport streamable-http
+        ```
+        The server will listen on `0.0.0.0:8000` by default when using `streamable-http`.
+
 6.  **Connect an MCP Client:**
     * Use an MCP-compatible AI application (like Anthropic's Claude Desktop, or build/configure your own client) to connect to the running server.
     * Configure the client to recognize your local server running via standard I/O. Refer to your chosen MCP client's documentation for how to add a local server.
